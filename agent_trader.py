@@ -29,12 +29,14 @@ class Agent(nn.Module):
 
 	def act(self, state):
 
-		x = torch.from_numpy(state.astype(np.float32))
+		x = torch.from_numpy(state).type(torch.FloatTensor)
 		estimate = self.model(x) #This is a forward pass through the network
 		prob_dist = Categorical(logits=estimate) #Probability distribution for sampling our action
 		action = prob_dist.sample()
 		log_prob = prob_dist.log_prob(action)
-		self.log_probs.append(log_prob) #Store for training
+		
+		#Store for training, think of this as policy_history
+		self.log_probs.append(log_prob) 
 		return self.actions[action.item()]
 
 	def fit(self, optimizer, gamma):
