@@ -7,37 +7,54 @@ from torch.distributions import Categorical
 class Agent(nn.Module):
 
 	def __init__(self, in_dim, out_dim):
+
 		super(Agent, self).__init__()
 		layers = [nn.Linear(in_dim, 64),
 				  nn.ReLU(),
-				  nn.Linear(64,64),
-				  nn.ReLU(),
 				  nn.Linear(64,32),
 				  nn.ReLU(),
-				  nn.Linear(32, out_dim),
+				  nn.Linear(32,16),
+				  nn.ReLU(),
+				  nn.Linear(16, out_dim),
 				  nn.Sigmoid()]
 		self.model = nn.Sequential(*layers)
-		#self.model.apply(self.init_weights)
+		self.actions = [-1, 1] #-1 is sell, 1 is buy
 		self.reset()
-		self.actions = [-1, 0, 1]
 		self.train()
-
+		
 	def reset(self):
+
 		self.log_probs = []
 		self.rewards = []
 
-	def forward(self, x):
-		pdparam = self.model(x)
-		return pdparam
-
 	def act(self, state):
+
 		x = torch.from_numpy(state.astype(np.float32))
-		pdparam = self.forward(x) #This is a forward pass through the network
-		m = Categorical(logits=pdparam) #Probability distribution
-		action = m.sample()
-		log_prob = -m.log_prob(action)
+		estimate = self.model(x) #This is a forward pass through the network
+		prob_dist = Categorical(logits=estimate) #Probability distribution for sampling our action
+		action = prob_dist.sample()
+		log_prob = prob_dist.log_prob(action)
 		self.log_probs.append(log_prob) #Store for training
 		return self.actions[action.item()]
+
+	def fit(self, optimizer, gamma):
+
+		l = len(self.rewards)
+		discounted_profits = np.empty(l,dtype=np.float32)
+		discounted_return = 0.
+
+		for t in reversed(range(l)):
+			discounted_return = self.rewards[t] + discounted_return*gamma
+			discounted_profits[t] = discounted_return
+
+		discounted_profits = torch.tensor(discounted_profits)
+		log_probs = torch.stack(self.log_probs)
+		loss = -log_probs*discounted_profits
+		loss = torch.sum(loss)
+		optimizer.zero_grad()
+		loss.backward() #Backpropagation
+		optimizer.step() #Gradient ascent - Max the reward function!
+		return loss
 
 
 
