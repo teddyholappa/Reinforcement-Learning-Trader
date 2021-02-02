@@ -4,6 +4,12 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Categorical
 
+'''
+A basic agent fit with a NN to estimate the objective function,
+an act method that determines whether to buy or sell the stock,
+and fit function which trains the NN after each episode.
+'''
+
 class Agent(nn.Module):
 
 	def __init__(self, in_dim, out_dim):

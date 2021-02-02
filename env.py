@@ -1,6 +1,16 @@
 from gym import spaces
 import numpy as np
 
+'''
+Basic environment which can produce a 'state' from
+which the agent can determine an action to take. 
+
+The step() method updates the environment,
+assuming the agent's action has no effect on market prices. It
+will return a new state, a reward for the prior action, and a
+boolean done which, if true, terminates the trading session.
+'''
+
 class Environment():
 
 	def __init__(self, df, look_back, num_features):

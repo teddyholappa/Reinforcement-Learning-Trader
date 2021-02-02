@@ -11,15 +11,23 @@ from torch.distributions import Categorical
 from matplotlib import pyplot as plt
 
 
-EPISODES = 50 # Numebr of times to iterate through each trajectory
+EPISODES = 50 # Number of times to iterate through each trajectory
 GAMMA = 0.99   # The discount rate
 LOOK_BACK = 10 # Number of lookback days
 
 
+'''
+The basic MDP control loop. Initialize the environment,
+and train the agent for a total of EPISODES episodes.
+
+The final plot is a visualization of cummulative profits
+over time.
+'''
+
 def main():
 
 	start_date = datetime.datetime(2002, 1,1)
-	end_date = datetime.datetime(2021, 1,27)
+	end_date = datetime.datetime(2021, 1,30)
 	stocks = web.DataReader('SPY', 'yahoo', start_date, end_date)
 
 	env = Environment(stocks,LOOK_BACK, stocks.shape[1])
